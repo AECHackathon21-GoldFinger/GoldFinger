@@ -132,15 +132,17 @@ namespace InteractiveTownBuilder
         }
         public override void DrawViewportMeshes(IGH_PreviewArgs args)
         {
-            if (model.SelectedVoxel.Z >= -1)
+            if (model != null)
             {
-                DisplayMethods.BoxCorners(model.GetBox(model.SelectedVoxel), args);
+                if (model.SelectedVoxel.Z >= -1)
+                {
+                    DisplayMethods.BoxCorners(model.GetBox(model.SelectedVoxel), args);
+                }
+                if (model.SelectedDirection != Voxel.FaceDirections.None)
+                {
+                    DisplayMethods.BlankMesh(model.GetFaces(model.SelectedVoxel)[model.selectedFace], args);
+                }
             }
-            if (model.SelectedDirection != Voxel.FaceDirections.None)
-            {
-                DisplayMethods.BlankMesh(model.GetFaces(model.SelectedVoxel)[model.selectedFace], args);
-            }
-            
             
             base.DrawViewportMeshes(args);
         }
