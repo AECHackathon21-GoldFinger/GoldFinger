@@ -156,15 +156,22 @@ namespace InteractiveTownBuilder
             base.DrawViewportMeshes(args);
         }
 
-        public void OnClick()
+        public void OnClick(bool add = true)
         {
             if (enabled)
             {
                 if (GetClickInfo(model, mouseLine, out int selectedBoxIndex, out int selectedFaceIndex, out Voxel voxel, out int[] offset, out Voxel.FaceDirections faceDirection))
                 {
 
+                    if (add)
+                    {
 
                     model.AddVoxel(new Voxel(voxel.X + offset[0], voxel.Y + offset[1], voxel.Z + offset[2]));
+                    }
+                    else
+                    {
+                        model.RemoveVoxel(voxel);
+                    }
                     //Rhino.RhinoApp.WriteLine($"Clicked {voxel}");
                     this.ExpireSolution(true);
 

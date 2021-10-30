@@ -41,7 +41,8 @@ namespace InteractiveTownBuilder
                 gh_component.mouseLine = new Line?(e.View.ActiveViewport.ClientToWorld(e.ViewportPoint));
                 //gh_component.ExpireSolution(true);
                 e.Cancel = true;
-                gh_component.OnClick();
+                if (e.ShiftKeyDown)
+                gh_component.OnClick(e.ShiftKeyDown);
 
                 base.OnMouseDown(e);
             }
