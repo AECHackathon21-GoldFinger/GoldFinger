@@ -11,6 +11,7 @@ namespace InteractiveTownBuilder
 
         private Box SolutionSpace = Box.Empty;
         Box[] SolutionArray = null;
+        List<Point3d> Slots = new List<Point3d>();
 
         public InteractiveTownBuilderComponent()
           : base("InteractiveTownBuilder", "ITB",
@@ -49,6 +50,7 @@ namespace InteractiveTownBuilder
             if (updated)
                 SolutionArray = SubdivideBox(SolutionSpace, size);
 
+
             DA.SetDataList("Boxes", SolutionArray);
 
 
@@ -66,7 +68,7 @@ namespace InteractiveTownBuilder
         private bool CheckInput(Box solutionSpace_new, ref Box solutionSpace_existing)
         {
             // Compare hashes
-            if (true)
+            if (!EqualBoxes(solutionSpace_new ,solutionSpace_existing))
             {
                 solutionSpace_existing = solutionSpace_new;
                 return true;
@@ -82,7 +84,7 @@ namespace InteractiveTownBuilder
             var y_axis = box.Y;
             var groundHeight = box.Z.Min;
 
-            Plane plane = new Plane(new Point3d(x_axis.Min, y_axis.Min, groundHeight), Vector3d.XAxis, Vector3d.YAxis );
+            Plane plane = new Plane(new Point3d(x_axis.Min, y_axis.Min, groundHeight), Vector3d.XAxis, Vector3d.YAxis);
 
 
             // Later check if geometry already exists and no ground plane needs to be created
@@ -91,7 +93,7 @@ namespace InteractiveTownBuilder
 
         }
 
-        private Box[] ConstructBaseplane(Plane plane, double size, Interval X, Interval Y) 
+        private Box[] ConstructBaseplane(Plane plane, double size, Interval X, Interval Y)
         {
             var coutInX = ((int)Math.Round(X.Length / size));
             var coutInY = ((int)Math.Round(Y.Length / size));
@@ -99,17 +101,17 @@ namespace InteractiveTownBuilder
 
             Interval x = new Interval(X.Min, X.Min + size);
             Interval y = new Interval(X.Min, X.Min + size);
-            Interval z = new Interval(plane.OriginZ , plane.OriginZ - size);
+            Interval z = new Interval(plane.OriginZ, plane.OriginZ - size);
 
 
             Box[] results = new Box[coutInX * coutInY];
 
 
-            for (int i = 0; i < (coutInX * coutInY); i += coutInX) 
+            for (int i = 0; i < (coutInX * coutInY); i += coutInX)
             {
-                for (int j = 0; j < coutInX; ++j) 
+                for (int j = 0; j < coutInX; ++j)
                 {
-                    results[i + j] = new Box(plane, x , y, z);
+                    results[i + j] = new Box(plane, x, y, z);
                     x += size;
                 }
                 y += size;
@@ -118,5 +120,12 @@ namespace InteractiveTownBuilder
 
             return results;
         }
+
+
+        private bool EqualBoxes(Box a, Box b) 
+            => a.X.Min == b.X.Min && a.X.Max == b.X.Max &&
+            a.Y.Min == b.Y.Min && a.Y.Max == b.Y.Max &&
+            a.Z.Min == b.Z.Min && a.Z.Max == b.Z.Max;
     }
+
 }
