@@ -77,7 +77,7 @@ namespace InteractiveTownBuilder
             double ySize = 3;
             double zSize = 3;
 
-            
+
             if (!DA.GetData(4, ref enabled))
             {
                 callback.Enabled = false;
@@ -86,7 +86,7 @@ namespace InteractiveTownBuilder
                 return;
             }
 
-            
+
 
             bool reset = false;
             DA.GetData(5, ref reset);
@@ -106,19 +106,19 @@ namespace InteractiveTownBuilder
 
                 bool updated = CheckInput(worldBox, ref oldSolutionSpace);
 
-                if (updated)
+                if (updated || reset)
                 {
-                    model = CreateModel(oldSolutionSpace, xSize, ySize, zSize);
-                   
+                    model = CreateModel(worldBox, xSize, ySize, zSize);
+
 
                 }
             }
 
-            callback.Enabled = enabled;
+            if (!reset)
+            {
+                callback.Enabled = enabled;
 
-            
-
-
+            }
 
             DA.SetDataList("Boxes", model.Voxels.Select(v => model.GetBox(v)));
 
@@ -143,13 +143,13 @@ namespace InteractiveTownBuilder
                     DisplayMethods.BlankMesh(model.GetFaces(model.SelectedVoxel)[model.selectedFace], args);
                 }
             }
-            
+
             base.DrawViewportMeshes(args);
         }
 
         public void OnClick()
         {
-            if(enabled)
+            if (enabled)
             {
                 if (GetClickInfo(model, mouseLine, out int selectedBoxIndex, out int selectedFaceIndex, out Voxel voxel, out int[] offset, out Voxel.FaceDirections faceDirection))
                 {
@@ -173,7 +173,7 @@ namespace InteractiveTownBuilder
             }
         }
 
-        
+
 
 
         public void OnMouseOver()
@@ -181,7 +181,7 @@ namespace InteractiveTownBuilder
             if (enabled && mouseLine.HasValue && model != null)
             {
                 GetClickInfo(model, mouseLine, out int selectedBoxIndex, out int selectedFaceIndex, out Voxel voxel, out int[] offset, out Voxel.FaceDirections faceDirection);
-                if (voxel.X != model.SelectedVoxel.X || voxel.Y != model.SelectedVoxel.Y || voxel.Z != model.SelectedVoxel.Z )
+                if (voxel.X != model.SelectedVoxel.X || voxel.Y != model.SelectedVoxel.Y || voxel.Z != model.SelectedVoxel.Z)
                 {
                     Rhino.RhinoApp.WriteLine($"selected {voxel}");
                     model.SelectedDirection = faceDirection;
@@ -189,9 +189,9 @@ namespace InteractiveTownBuilder
                     selectedBox = selectedBoxIndex;
                     selectedFace = selectedFaceIndex;
                 }
-                
 
-                
+
+
             }
         }
 
@@ -206,7 +206,7 @@ namespace InteractiveTownBuilder
         private bool CheckInput(Box solutionSpace_new, ref Box solutionSpace_existing)
         {
             // Compare hashes
-            if (!EqualBoxes(solutionSpace_new ,solutionSpace_existing))
+            if (!EqualBoxes(solutionSpace_new, solutionSpace_existing))
             {
                 solutionSpace_existing = solutionSpace_new;
                 return true;
@@ -229,9 +229,9 @@ namespace InteractiveTownBuilder
             if (true)
             {
 
-                (Box[] Volume, Voxel[] voxels) = ConstructBaseplane(plane, xSize, ySize, zSize, box, out int[] cellCount);
-            
-                return new Model(cellCount, new double[] { xSize, ySize, zSize }) { Voxels = voxels.ToList() };
+                Voxel[] voxels = ConstructBaseplane(plane, xSize, ySize, zSize, box, out int[] gridSize);
+
+                return new Model(gridSize, new double[] { xSize, ySize, zSize }) { Voxels = voxels.ToList() };
             }
 
         }
@@ -242,7 +242,7 @@ namespace InteractiveTownBuilder
             Box[] boxes = model.Voxels.Select(v => model.GetBox(v)).ToArray();
             faceDirection = Voxel.FaceDirections.None;
             //TODO: get box from voxels,
-           
+
             if (!lineFromMouse.HasValue)
             {
                 selectedBoxIndex = -1;
@@ -310,18 +310,18 @@ namespace InteractiveTownBuilder
                 }
 
                 IOrderedEnumerable<int> sourceFaces = Enumerable.Range(0, selectedFaces.Count).OrderByDescending(i => intersectParamsFaces[i]);
-                
+
                 selectedFaceIndex = sourceFaces.Select(i => selectedFaces[i]).First();
 
                 model.selectedFace = selectedFaceIndex;
 
                 voxel = model.Voxels[selectedBoxIndex];
-                
+
 
                 switch (selectedFaceIndex)
                 {
                     case 0:
-                        offset = new int[3] { 0,0,-1 };
+                        offset = new int[3] { 0, 0, -1 };
                         faceDirection = Voxel.FaceDirections.Down;
                         break;
                     case 1:
@@ -346,7 +346,7 @@ namespace InteractiveTownBuilder
                         break;
                     default:
                         throw new Exception("wrong face id");
-                       
+
                 }
 
             }
@@ -362,7 +362,7 @@ namespace InteractiveTownBuilder
             return true;
         }
 
-        private (Box[] Volume, Voxel[] Slot) ConstructBaseplane(Plane plane, double xSize, double ySize, double zSize, Box box, out int[] cellCount)
+        private Voxel[] ConstructBaseplane(Plane plane, double xSize, double ySize, double zSize, Box box, out int[] cellCount)
         {
             Interval X = box.X;
             Interval Y = box.Y;
@@ -378,7 +378,7 @@ namespace InteractiveTownBuilder
             Interval z = new Interval(plane.OriginZ, plane.OriginZ - zSize);
 
 
-            Box[] groundPlaneVolumes = new Box[coutInX * coutInY];
+            //Box[] groundPlaneVolumes = new Box[coutInX * coutInY];
             Voxel[] groundPlaneSlots = new Voxel[coutInX * coutInY];
 
 
@@ -386,19 +386,19 @@ namespace InteractiveTownBuilder
             {
                 for (int j = 0; j < coutInX; ++j)
                 {
-                    groundPlaneVolumes[i + j] = new Box(plane, x, y, z);
-                    groundPlaneSlots[i + j] = new Voxel(i,j,0);
+                    //groundPlaneVolumes[i + j] = new Box(plane, x, y, z);
+                    groundPlaneSlots[i + j] = new Voxel(i, j, 0);
                     x += xSize;
                 }
                 y += ySize;
                 x = new Interval(X.Min, X.Min + xSize);
             }
 
-            return (groundPlaneVolumes, groundPlaneSlots);
+            return groundPlaneSlots;
         }
 
 
-        private bool EqualBoxes(Box a, Box b) 
+        private bool EqualBoxes(Box a, Box b)
             => a.X.Min == b.X.Min && a.X.Max == b.X.Max &&
             a.Y.Min == b.Y.Min && a.Y.Max == b.Y.Max &&
             a.Z.Min == b.Z.Min && a.Z.Max == b.Z.Max;

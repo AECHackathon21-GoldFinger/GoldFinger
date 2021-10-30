@@ -16,12 +16,12 @@ namespace InteractiveTownBuilder
 
         private InteractiveTownBuilderComponent gh_component;
 
-        public string HoverViewportName { get; set; }
+        //public string HoverViewportName { get; set; }
 
-        public List<Box> VisibleBoxes = new List<Box>();
+        //public List<Box> VisibleBoxes = new List<Box>();
 
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetForegroundWindow();
+        //[DllImport("user32.dll")]
+        //private static extern IntPtr GetForegroundWindow();
 
 
         public MouseCallback(InteractiveTownBuilderComponent cm)
