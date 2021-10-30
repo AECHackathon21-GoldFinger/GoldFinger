@@ -160,8 +160,8 @@ namespace InteractiveTownBuilder
 
         public void DisplayGround(IGH_PreviewArgs args) 
         {
-            var groundPlane = this.GroundPlane.Select(v => this.GetBox(v));
-            groundPlane.Select(b => b.Transform(Transform.Scale(basePlane, 1.0,1.0, 0.1)));
+            IEnumerable<Box> groundPlane = this.GroundPlane.Select(v => this.GetBox(v));
+            //groundPlane.Select(b => b.Transform(Transform.Scale(basePlane, 1.0,1.0, 0.1)));
 
 
             foreach (Box box in groundPlane) box.BoxCorners(args);

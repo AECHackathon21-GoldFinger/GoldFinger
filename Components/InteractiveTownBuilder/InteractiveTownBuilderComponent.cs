@@ -145,6 +145,12 @@ namespace InteractiveTownBuilder
                 }
             }
 
+            if (model != null)
+            {
+                model.DisplayGround(args);
+                model.DisplayModel(args);
+            }
+
             base.DrawViewportMeshes(args);
         }
 
