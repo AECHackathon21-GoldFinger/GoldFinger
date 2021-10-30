@@ -12,6 +12,7 @@ namespace InteractiveTownBuilder
         private Box SolutionSpace = Box.Empty;
         Box[] SolutionArray = null;
         List<Point3d> Slots = new List<Point3d>();
+        List<MeshFace> Faces = new List<MeshFace>();
 
         public InteractiveTownBuilderComponent()
           : base("InteractiveTownBuilder", "ITB",
@@ -56,6 +57,15 @@ namespace InteractiveTownBuilder
 
         }
 
+        public override void DrawViewportWires(IGH_PreviewArgs args)
+        {
+            base.DrawViewportWires(args);
+
+        }
+        public override void DrawViewportMeshes(IGH_PreviewArgs args)
+        {
+            base.DrawViewportMeshes(args);
+        }
 
         protected override System.Drawing.Bitmap Icon => null;
 
@@ -89,11 +99,11 @@ namespace InteractiveTownBuilder
 
             // Later check if geometry already exists and no ground plane needs to be created
             if (true)
-                return ConstructBaseplane(plane, cell_size, box.X, box.Y);
+                return ConstructBaseplane(plane, cell_size, box.X, box.Y).Volume;
 
         }
 
-        private Box[] ConstructBaseplane(Plane plane, double size, Interval X, Interval Y)
+        private (Box[] Volume, Point3d[] Slot) ConstructBaseplane(Plane plane, double size, Interval X, Interval Y)
         {
             var coutInX = ((int)Math.Round(X.Length / size));
             var coutInY = ((int)Math.Round(Y.Length / size));
@@ -104,21 +114,23 @@ namespace InteractiveTownBuilder
             Interval z = new Interval(plane.OriginZ, plane.OriginZ - size);
 
 
-            Box[] results = new Box[coutInX * coutInY];
+            Box[] groundPlaneVolumes = new Box[coutInX * coutInY];
+            Point3d[] groundPlaneSlots = new Point3d[coutInX * coutInY];
 
 
             for (int i = 0; i < (coutInX * coutInY); i += coutInX)
             {
                 for (int j = 0; j < coutInX; ++j)
                 {
-                    results[i + j] = new Box(plane, x, y, z);
+                    groundPlaneVolumes[i + j] = new Box(plane, x, y, z);
+                    groundPlaneSlots[i + j] = new Point3d(i,j,0);
                     x += size;
                 }
                 y += size;
                 x = new Interval(X.Min, X.Min + size);
             }
 
-            return results;
+            return (groundPlaneVolumes, groundPlaneSlots);
         }
 
 
@@ -126,6 +138,8 @@ namespace InteractiveTownBuilder
             => a.X.Min == b.X.Min && a.X.Max == b.X.Max &&
             a.Y.Min == b.Y.Min && a.Y.Max == b.Y.Max &&
             a.Z.Min == b.Z.Min && a.Z.Max == b.Z.Max;
+
+
     }
 
 }
