@@ -1,18 +1,33 @@
 using Grasshopper;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
+using Rhino.Geometry.Intersect;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace InteractiveTownBuilder
 {
     public class InteractiveTownBuilderComponent : GH_Component
     {
-
-        private Box SolutionSpace = Box.Empty;
-        Box[] SolutionArray = null;
+        Model model;
+        private Box oldSolutionSpace = Box.Empty;
+        Box[] boxArray = null;
         List<Point3d> Slots = new List<Point3d>();
         List<MeshFace> Faces = new List<MeshFace>();
+
+
+        List<Box> boxes = new List<Box>();
+        List<Mesh> clickableMeshes = new List<Mesh>();
+        private GH_Document doc;
+        internal Line? mouseLine;
+        private MouseCallback callback;
+        bool enabled = false;
+
+        Voxel[] voxelArray;
+
+        int selectedBox = -1;
+        int selectedFace = -1;
 
         public InteractiveTownBuilderComponent()
           : base("InteractiveTownBuilder", "ITB",
@@ -24,8 +39,12 @@ namespace InteractiveTownBuilder
 
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddBoxParameter("Solution Space", "SS", "A bounding box of the solution space to consider", GH_ParamAccess.item, Box.Empty);
-            pManager.AddNumberParameter("Size", "s", "The size of a voxel meter", GH_ParamAccess.item, 3);
+            pManager.AddBoxParameter("Bounding Box", "BB", "A bounding box of the solution space to consider", GH_ParamAccess.item, Box.Empty);
+            pManager.AddNumberParameter("xSize", "X", "The size of a voxel meter", GH_ParamAccess.item, 3);
+            pManager.AddNumberParameter("ySize", "Y", "The size of a voxel meter", GH_ParamAccess.item, 3);
+            pManager.AddNumberParameter("zSize", "Z", "The size of a voxel meter", GH_ParamAccess.item, 3);
+            pManager.AddBooleanParameter("Enable", "Enable", "enable", GH_ParamAccess.item);
+            pManager.AddBooleanParameter("Reset", "Reset", "Resets your world :o", GH_ParamAccess.item);
         }
 
 
@@ -35,24 +54,70 @@ namespace InteractiveTownBuilder
             pManager.AddBoxParameter("Boxes", "B", "The slotes represented as boxes", GH_ParamAccess.list);
         }
 
+        protected override void BeforeSolveInstance()
+        {
+            this.doc = this.OnPingDocument();
+            //this.doc.ObjectsDeleted -= new GH_Document.ObjectsDeletedEventHandler(this.ObjectsDeleted);
+            //this.doc.ObjectsDeleted += new GH_Document.ObjectsDeletedEventHandler(this.ObjectsDeleted);
+            //Instances.ActiveCanvas.Document.ContextChanged -= new GH_Document.ContextChangedEventHandler(this.ContextChanged);
+            //Instances.ActiveCanvas.Document.ContextChanged += new GH_Document.ContextChangedEventHandler(this.ContextChanged);
+            base.BeforeSolveInstance();
+        }
+
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            Box solutio_space = Box.Empty;
-            double size = 3;
 
-            DA.GetData("Solution Space", ref solutio_space);
-            DA.GetData("Size", ref size);
+            callback.Enabled = false;
 
 
-            bool updated = CheckInput(solutio_space, ref SolutionSpace);
+            Box worldBox = Box.Empty;
+            double xSize = 3;
+            double ySize = 3;
+            double zSize = 3;
+
+            
+            if (!DA.GetData(4, ref enabled))
+            {
+                callback.Enabled = false;
+                selectedBox = -1;
+                selectedFace = -1;
+                return;
+            }
+
+            
+
+            bool reset = false;
+            DA.GetData(5, ref reset);
+
+            DA.GetData("Bounding Box", ref worldBox);
+            DA.GetData("xSize", ref xSize);
+            DA.GetData("ySize", ref ySize);
+            DA.GetData("zSize", ref zSize);
+
+            if (reset || model == null)
+            {
+                if (worldBox.X.Length / xSize * worldBox.Y.Length / ySize * worldBox.Z.Length / zSize > 10e4)
+                {
+                    throw new Exception("you have inputted more than 10k cells. We believe this is an error with units, so we cancelled the request");
+
+                }
+
+                bool updated = CheckInput(worldBox, ref oldSolutionSpace);
+
+                if (updated)
+                {
+                    model = CreateModel(oldSolutionSpace, xSize, ySize, zSize);
+                   
+
+                }
+            }
+
+            
 
 
-            if (updated)
-                SolutionArray = SubdivideBox(SolutionSpace, size);
 
-
-            DA.SetDataList("Boxes", SolutionArray);
+            DA.SetDataList("Boxes", boxArray);
 
 
         }
@@ -65,6 +130,35 @@ namespace InteractiveTownBuilder
         public override void DrawViewportMeshes(IGH_PreviewArgs args)
         {
             base.DrawViewportMeshes(args);
+        }
+
+        public void OnClick()
+        {
+            if(enabled && mouseLine.HasValue)
+            {
+                if (GetClickInfo(boxArray, mouseLine, out int selectedBoxIndex, out int selectedFaceIndex))
+                {
+                    selectedBox = selectedBoxIndex;
+                    selectedFace = selectedFaceIndex;
+
+
+
+                }
+
+
+
+            }
+        }
+
+
+        public void OnMouseOver()
+        {
+            if (enabled && mouseLine.HasValue)
+            {
+                GetClickInfo(boxArray, mouseLine, out int selectedBoxIndex, out int selectedFaceIndex);
+                selectedBox = selectedBoxIndex;
+                selectedFace = selectedFaceIndex;
+            }
         }
 
         protected override System.Drawing.Bitmap Icon => null;
@@ -88,7 +182,7 @@ namespace InteractiveTownBuilder
 
 
         // Subdivide the the bounding box
-        private Box[] SubdivideBox(Box box, double cell_size)
+        private Model CreateModel(Box box, double xSize, double ySize, double zSize)
         {
             var x_axis = box.X;
             var y_axis = box.Y;
@@ -99,23 +193,141 @@ namespace InteractiveTownBuilder
 
             // Later check if geometry already exists and no ground plane needs to be created
             if (true)
-                return ConstructBaseplane(plane, cell_size, box.X, box.Y).Volume;
+            {
+
+                (Box[] Volume, Voxel[] voxels) = ConstructBaseplane(plane, xSize, ySize, zSize, box, out int[] cellCount);
+            
+                return new Model(cellCount, new double[] { xSize, ySize, zSize }) { Voxels = voxels.ToList() };
+            }
 
         }
 
-        private (Box[] Volume, Point3d[] Slot) ConstructBaseplane(Plane plane, double size, Interval X, Interval Y)
+
+        public bool GetClickInfo(Box[] boxes, Line? lineFromMouse, out int selectedBoxIndex, out int selectedFaceIndex)
         {
-            var coutInX = ((int)Math.Round(X.Length / size));
-            var coutInY = ((int)Math.Round(Y.Length / size));
+            if (!lineFromMouse.HasValue)
+            {
+                selectedBoxIndex = -1;
+                selectedFaceIndex = -1;
+                return false;
+            }
+
+            List<Mesh> clickableMeshes = new List<Mesh>();
+            List<Mesh> selectedMeshes = new List<Mesh>();
+            List<double> intersectParams = new List<double>();
+            List<double> intersectParamsFaces = new List<double>();
+            List<Mesh> outMeshes = new List<Mesh>();
+            List<int> selectedBoxID = new List<int>();
+
+            for (int i = 0; i < boxes.Length; i++)
+            {
+
+                clickableMeshes.Add(Mesh.CreateFromBox(boxes[i], 1, 1, 1));
+                Mesh thisMesh = clickableMeshes[clickableMeshes.Count - 1];
 
 
-            Interval x = new Interval(X.Min, X.Min + size);
-            Interval y = new Interval(X.Min, X.Min + size);
-            Interval z = new Interval(plane.OriginZ, plane.OriginZ - size);
+                double num = Intersection.MeshRay(thisMesh, new Ray3d(lineFromMouse.Value.From, new Vector3d(lineFromMouse.Value.To - lineFromMouse.Value.From)));
+                if (num >= 0.0)
+                {
+                    intersectParams.Add(num);
+                    selectedMeshes.Add(thisMesh);
+
+                    selectedBoxID.Add(i);
+                }
+
+            }
+
+            IOrderedEnumerable<int> source = Enumerable.Range(0, selectedMeshes.Count).OrderByDescending(i => intersectParams[i]);
+            selectedMeshes = source.Select(i => selectedMeshes[i]).ToList();
+            selectedBoxID = source.Select(i => selectedBoxID[i]).ToList();
+
+            List<int> selectedFaces = new List<int>();
+
+            if (selectedMeshes.Count > 0)
+            {
+                selectedMeshes = new List<Mesh>()
+                    {
+                        selectedMeshes[0]
+                    };
+
+                selectedBoxIndex = selectedBoxID[0];
+
+                Mesh m = selectedMeshes[0];
+
+                List<Mesh> outFaces = new List<Mesh>();
+                var faces = m.Faces;
+                var pts = m.Vertices;
+
+                for (int i = 0; i < faces.Count; i++)
+                {
+
+                    var face = faces[i];
+                    var ptlist = new List<Point3d>();
+                    var msh = new Mesh();
+
+                    ptlist.Add(pts[face.A]);
+                    ptlist.Add(pts[face.B]);
+                    ptlist.Add(pts[face.C]);
+                    if (face.IsQuad)
+                    {
+                        ptlist.Add(pts[face.D]);
+                    }
+
+                    msh.Vertices.AddVertices(ptlist);
+                    msh.Faces.AddFace(face.IsQuad ? new MeshFace(0, 1, 2, 3) : new MeshFace(0, 1, 2));
+                    outFaces.Add(msh);
+
+                }
+
+
+                for (int i = 0; i < outFaces.Count; i++)
+                {
+                    Mesh meshFace = outFaces[i];
+
+                    double num = Intersection.MeshRay(meshFace, new Ray3d(lineFromMouse.Value.From, new Vector3d(lineFromMouse.Value.To - lineFromMouse.Value.From)));
+                    if (num >= 0.0)
+                    {
+                        intersectParamsFaces.Add(num);
+
+                        selectedFaces.Add(i);
+
+                    }
+                }
+
+                IOrderedEnumerable<int> sourceFaces = Enumerable.Range(0, selectedFaces.Count).OrderByDescending(i => intersectParamsFaces[i]);
+                selectedFaceIndex = sourceFaces.Select(i => selectedFaces[i]).First();
+                
+
+            }
+            else
+            {
+                selectedBoxIndex = -1;
+                selectedFaceIndex = -1;
+                return false;
+            }
+           
+
+            return true;
+        }
+
+        private (Box[] Volume, Voxel[] Slot) ConstructBaseplane(Plane plane, double xSize, double ySize, double zSize, Box box, out int[] cellCount)
+        {
+            Interval X = box.X;
+            Interval Y = box.Y;
+            var coutInX = ((int)Math.Round(X.Length / xSize));
+            var coutInY = ((int)Math.Round(Y.Length / ySize));
+            int heightCount = ((int)Math.Round(box.Z.Length / zSize));
+
+            cellCount = new int[3] { coutInX, coutInY, heightCount };
+
+
+            Interval x = new Interval(X.Min, X.Min + xSize);
+            Interval y = new Interval(X.Min, X.Min + ySize);
+            Interval z = new Interval(plane.OriginZ, plane.OriginZ - zSize);
 
 
             Box[] groundPlaneVolumes = new Box[coutInX * coutInY];
-            Point3d[] groundPlaneSlots = new Point3d[coutInX * coutInY];
+            Voxel[] groundPlaneSlots = new Voxel[coutInX * coutInY];
 
 
             for (int i = 0; i < (coutInX * coutInY); i += coutInX)
@@ -123,11 +335,11 @@ namespace InteractiveTownBuilder
                 for (int j = 0; j < coutInX; ++j)
                 {
                     groundPlaneVolumes[i + j] = new Box(plane, x, y, z);
-                    groundPlaneSlots[i + j] = new Point3d(i,j,0);
-                    x += size;
+                    groundPlaneSlots[i + j] = new Voxel(i,j,0);
+                    x += xSize;
                 }
-                y += size;
-                x = new Interval(X.Min, X.Min + size);
+                y += ySize;
+                x = new Interval(X.Min, X.Min + xSize);
             }
 
             return (groundPlaneVolumes, groundPlaneSlots);
