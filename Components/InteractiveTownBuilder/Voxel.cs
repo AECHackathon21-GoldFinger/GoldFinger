@@ -10,7 +10,8 @@ namespace InteractiveTownBuilder
             Up,
             West,
             South,
-            Down
+            Down,
+            None
         }
         public int X { get; set; }
         public int Y { get; set; }
@@ -21,6 +22,11 @@ namespace InteractiveTownBuilder
             X = x;
             Y = y;
             Z = z;
+        }
+
+        public override string ToString()
+        {
+            return $"[Voxel {X}, {Y}, {Z}]";
         }
     }
 }

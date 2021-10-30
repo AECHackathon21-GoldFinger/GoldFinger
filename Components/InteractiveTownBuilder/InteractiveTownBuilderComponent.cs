@@ -34,6 +34,7 @@ namespace InteractiveTownBuilder
             "This component enables interactive town building in Grasshopper",
             "GoldFinger", "SetUp")
         {
+            callback = new MouseCallback(this);
         }
 
 
@@ -113,11 +114,13 @@ namespace InteractiveTownBuilder
                 }
             }
 
+            callback.Enabled = enabled;
+
             
 
 
 
-            DA.SetDataList("Boxes", boxArray);
+            DA.SetDataList("Boxes", model.Voxels.Select(v => model.GetBox(v)));
 
 
         }
@@ -129,19 +132,37 @@ namespace InteractiveTownBuilder
         }
         public override void DrawViewportMeshes(IGH_PreviewArgs args)
         {
+            if (model.SelectedVoxel.Z >= -1)
+            {
+                DisplayMethods.BoxCorners(model.GetBox(model.SelectedVoxel), args);
+            }
+            if (model.SelectedDirection != Voxel.FaceDirections.None)
+            {
+                DisplayMethods.BlankMesh(model.GetFaces(model.SelectedVoxel)[model.selectedFace], args);
+            }
+            
+            
             base.DrawViewportMeshes(args);
         }
 
         public void OnClick()
         {
-            if(enabled && mouseLine.HasValue)
+            if(enabled)
             {
-                if (GetClickInfo(model, boxArray, mouseLine, out int selectedBoxIndex, out int selectedFaceIndex, out Voxel voxel))
+                if (GetClickInfo(model, mouseLine, out int selectedBoxIndex, out int selectedFaceIndex, out Voxel voxel, out int[] offset, out Voxel.FaceDirections faceDirection))
                 {
+
+
+
+                    model.SelectedVoxel = model.Voxels[selectedBoxIndex];
+
+
                     selectedBox = selectedBoxIndex;
                     selectedFace = selectedFaceIndex;
 
-                    model.AddVoxel()
+                    model.AddVoxel(new Voxel(voxel.X + offset[0], voxel.Y + offset[1], voxel.Z + offset[2]));
+                    Rhino.RhinoApp.WriteLine($"Clicked {voxel}");
+                    this.ExpireSolution(true);
 
                 }
 
@@ -150,14 +171,25 @@ namespace InteractiveTownBuilder
             }
         }
 
+        
+
 
         public void OnMouseOver()
         {
-            if (enabled && mouseLine.HasValue)
+            if (enabled && mouseLine.HasValue && model != null)
             {
-                GetClickInfo(model, boxArray, mouseLine, out int selectedBoxIndex, out int selectedFaceIndex);
-                selectedBox = selectedBoxIndex;
-                selectedFace = selectedFaceIndex;
+                GetClickInfo(model, mouseLine, out int selectedBoxIndex, out int selectedFaceIndex, out Voxel voxel, out int[] offset, out Voxel.FaceDirections faceDirection);
+                if (voxel.X != model.SelectedVoxel.X || voxel.Y != model.SelectedVoxel.Y || voxel.Z != model.SelectedVoxel.Z )
+                {
+                    Rhino.RhinoApp.WriteLine($"selected {voxel}");
+                    model.SelectedDirection = faceDirection;
+                    model.SelectedVoxel = voxel;
+                    selectedBox = selectedBoxIndex;
+                    selectedFace = selectedFaceIndex;
+                }
+                
+
+                
             }
         }
 
@@ -203,8 +235,10 @@ namespace InteractiveTownBuilder
         }
 
 
-        public bool GetClickInfo(Model model, Box[] boxes, Line? lineFromMouse, out int selectedBoxIndex, out int selectedFaceIndex, out Voxel voxel, out int[] offset)
+        public bool GetClickInfo(Model model, Line? lineFromMouse, out int selectedBoxIndex, out int selectedFaceIndex, out Voxel voxel, out int[] offset, out Voxel.FaceDirections faceDirection)
         {
+            Box[] boxes = model.Voxels.Select(v => model.GetBox(v)).ToArray();
+            faceDirection = Voxel.FaceDirections.None;
             //TODO: get box from voxels,
            
             if (!lineFromMouse.HasValue)
@@ -256,33 +290,8 @@ namespace InteractiveTownBuilder
 
                 selectedBoxIndex = selectedBoxID[0];
 
-                Mesh m = selectedMeshes[0];
-
-                List<Mesh> outFaces = new List<Mesh>();
-                var faces = m.Faces;
-                var pts = m.Vertices;
-
-                for (int i = 0; i < faces.Count; i++)
-                {
-
-                    var face = faces[i];
-                    var ptlist = new List<Point3d>();
-                    var msh = new Mesh();
-
-                    ptlist.Add(pts[face.A]);
-                    ptlist.Add(pts[face.B]);
-                    ptlist.Add(pts[face.C]);
-                    if (face.IsQuad)
-                    {
-                        ptlist.Add(pts[face.D]);
-                    }
-
-                    msh.Vertices.AddVertices(ptlist);
-                    msh.Faces.AddFace(face.IsQuad ? new MeshFace(0, 1, 2, 3) : new MeshFace(0, 1, 2));
-                    outFaces.Add(msh);
-
-                }
-
+                model.SelectedVoxel = model.Voxels[selectedBoxIndex];
+                var outFaces = model.GetFaces(model.SelectedVoxel);
 
                 for (int i = 0; i < outFaces.Count; i++)
                 {
@@ -299,29 +308,39 @@ namespace InteractiveTownBuilder
                 }
 
                 IOrderedEnumerable<int> sourceFaces = Enumerable.Range(0, selectedFaces.Count).OrderByDescending(i => intersectParamsFaces[i]);
+                
                 selectedFaceIndex = sourceFaces.Select(i => selectedFaces[i]).First();
 
+                model.selectedFace = selectedFaceIndex;
+
                 voxel = model.Voxels[selectedBoxIndex];
+                
 
                 switch (selectedFaceIndex)
                 {
                     case 0:
                         offset = new int[3] { 0,0,-1 };
+                        faceDirection = Voxel.FaceDirections.Down;
                         break;
                     case 1:
                         offset = new int[3] { 0, 0, 1 };
+                        faceDirection = Voxel.FaceDirections.Up;
                         break;
                     case 2:
                         offset = new int[3] { 0, -1, 0 };
+                        faceDirection = Voxel.FaceDirections.South;
                         break;
                     case 3:
                         offset = new int[3] { 1, 0, 0 };
+                        faceDirection = Voxel.FaceDirections.East;
                         break;
                     case 4:
                         offset = new int[3] { 0, 1, 0 };
+                        faceDirection = Voxel.FaceDirections.North;
                         break;
                     case 5:
                         offset = new int[3] { -1, 0, 0 };
+                        faceDirection = Voxel.FaceDirections.West;
                         break;
                     default:
                         throw new Exception("wrong face id");
@@ -337,7 +356,7 @@ namespace InteractiveTownBuilder
                 offset = new int[0];
                 return false;
             }
-           
+            Rhino.RhinoApp.WriteLine($"Clicked voxel {voxel.X}, {voxel.Y}, {voxel.Z}. Active face was {model.selectedFace} and the direction is {model.SelectedDirection}");
             return true;
         }
 

@@ -39,6 +39,17 @@ namespace InteractiveTownBuilder
         /// </summary>
         public int[] GridDimensions { get; set; } = new int[3];
 
+        public Voxel SelectedVoxel { get; set; } = new Voxel(0, 0, -2);
+
+        /// <summary>
+        /// used for logics
+        /// </summary>
+        public Voxel.FaceDirections SelectedDirection { get; set; } = Voxel.FaceDirections.None;
+
+
+        public int selectedFace { get; set; } = -1;
+
+
         /// <summary>
         /// master model that hosts everything
         /// </summary>
@@ -72,6 +83,40 @@ namespace InteractiveTownBuilder
 
             }
             return false;
+        }
+
+
+        public List<Mesh> GetFaces(Voxel v)
+        {
+            
+            Mesh m = Mesh.CreateFromBox(GetBox(v), 1, 1, 1);
+
+            List<Mesh> outFaces = new List<Mesh>();
+            var faces = m.Faces;
+            var pts = m.Vertices;
+
+            for (int i = 0; i < faces.Count; i++)
+            {
+
+                var face = faces[i];
+                var ptlist = new List<Point3d>();
+                var msh = new Mesh();
+
+                ptlist.Add(pts[face.A]);
+                ptlist.Add(pts[face.B]);
+                ptlist.Add(pts[face.C]);
+                if (face.IsQuad)
+                {
+                    ptlist.Add(pts[face.D]);
+                }
+
+                msh.Vertices.AddVertices(ptlist);
+                msh.Faces.AddFace(face.IsQuad ? new MeshFace(0, 1, 2, 3) : new MeshFace(0, 1, 2));
+                outFaces.Add(msh);
+
+            }
+
+            return outFaces;
         }
 
         public Box GetBox(Voxel voxel)  => new Box(basePlane, 

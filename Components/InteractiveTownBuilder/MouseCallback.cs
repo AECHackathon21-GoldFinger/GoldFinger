@@ -34,7 +34,8 @@ namespace InteractiveTownBuilder
 
         protected override void OnMouseDown(MouseCallbackEventArgs e)
         {
-            if (e.Button == MouseButtons.Left && gh_component != null && GetForegroundWindow() == RhinoApp.MainWindowHandle())
+            //if (e.Button == MouseButtons.Left && gh_component != null && GetForegroundWindow() == RhinoApp.MainWindowHandle())
+            if (e.Button == MouseButtons.Left && gh_component != null)
             {
                 gh_component.mouseLine = new Line?(e.View.ActiveViewport.ClientToWorld(e.ViewportPoint));
                 //gh_component.ExpireSolution(true);
@@ -47,11 +48,13 @@ namespace InteractiveTownBuilder
             }
         }
 
-        protected override void OnEndMouseMove(MouseCallbackEventArgs e)
+        protected override void OnMouseMove(MouseCallbackEventArgs e)
         {
-            if(gh_component != null && GetForegroundWindow() == RhinoApp.MainWindowHandle())
+            //if (gh_component != null && GetForegroundWindow() == RhinoApp.MainWindowHandle())
+            if (gh_component != null)
             {
-            gh_component.mouseLine = new Line?(e.View.ActiveViewport.ClientToWorld(e.ViewportPoint));
+                gh_component.mouseLine = new Line?(e.View.ActiveViewport.ClientToWorld(e.ViewportPoint));
+                gh_component.OnMouseOver();
 
             }
 
