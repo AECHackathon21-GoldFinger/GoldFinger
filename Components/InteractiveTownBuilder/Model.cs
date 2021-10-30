@@ -19,10 +19,17 @@ namespace InteractiveTownBuilder
         /// </summary>
         private Plane basePlane = Plane.WorldXY;
 
+        
+
         /// <summary>
         /// Public get method for the BasePlane
         /// </summary>
         public Plane BasePlane { get => basePlane; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public List<Voxel> GroundPlane { get; set; }
 
         /// <summary>
         /// List of all voxels that are solids
@@ -148,6 +155,29 @@ namespace InteractiveTownBuilder
             if (voxel.X < 0 | voxel.Y < 0 | voxel.Z > 0) return false;
             if (voxel.X < this.GridDimensions[0] & voxel.Y < this.GridDimensions[1] & voxel.Z > - this.GridDimensions[2]) return true;
             return false;
+        }
+
+
+        public void DisplayGround(IGH_PreviewArgs args) 
+        {
+            var groundPlane = this.GroundPlane.Select(v => this.GetBox(v));
+            groundPlane.Select(b => b.Transform(Transform.Scale(basePlane, 1.0,1.0, 0.1)));
+
+
+            foreach (Box box in groundPlane) box.BoxCorners(args);
+
+        }
+
+        public void DisplayModel(IGH_PreviewArgs args)
+        {
+            Mesh mesh = new Mesh();
+            bool CustomJoin(Mesh mesh1, Mesh mesh2) 
+            {
+                mesh1.Append(mesh2);
+                return true;
+            }
+            var meshs = this.Voxels.Where(v => this.isGroudplane(v) == false).Select( v => this.GetFaces(v).Select(m => CustomJoin(mesh,m)));
+            mesh.BlankMesh(args);
         }
 
         public static Model operator +(Model a, Voxel b)

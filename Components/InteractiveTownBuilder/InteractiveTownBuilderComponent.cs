@@ -231,7 +231,10 @@ namespace InteractiveTownBuilder
 
                 Voxel[] voxels = ConstructBaseplane(plane, xSize, ySize, zSize, box, out int[] gridSize);
 
-                return new Model(gridSize, new double[] { xSize, ySize, zSize }) { Voxels = voxels.ToList() };
+                return new Model(gridSize, new double[] { xSize, ySize, zSize }) 
+                { 
+                    Voxels = voxels.ToList(),
+                    GroundPlane = voxels.ToList() };
             }
 
         }
