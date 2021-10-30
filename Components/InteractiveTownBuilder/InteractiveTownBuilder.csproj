@@ -17,5 +17,9 @@
     <StartArguments></StartArguments>
     <StartAction>Program</StartAction>
   </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <OutputPath>C:\Users\mm1062\AppData\Roaming\Grasshopper\Libraries\GoldFinger\</OutputPath>
+  </PropertyGroup>
 
 </Project>
