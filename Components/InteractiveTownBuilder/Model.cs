@@ -13,7 +13,7 @@ namespace InteractiveTownBuilder
     /// The main model to host our "map" or "level"
     /// </summary>
     public class Model
-    {   
+    {
         /// <summary>
         /// Private baseplane to avoid acidental overrides 
         /// </summary>
@@ -27,7 +27,7 @@ namespace InteractiveTownBuilder
         /// <summary>
         /// List of all voxels that are solids
         /// </summary>
-        public List<Voxel> Voxels {get;set;}
+        public List<Voxel> Voxels { get; set; }
 
         /// <summary>
         /// Dimensions of one voxel
@@ -56,21 +56,28 @@ namespace InteractiveTownBuilder
         }
 
 
-        public void AddVoxel(Voxel voxel) => this.Voxels.Add(voxel);
+        public void AddVoxel(Voxel voxel) 
+        {
+            if (this.isInside(voxel)) this.Voxels.Add(voxel); 
+        }
         public bool RemoveVoxel(Voxel voxel)
         {
             if (this.Voxels.Contains(voxel)) 
             {
-                this.Voxels.Remove(voxel);
-                return true;
+                if (!this.isGroudplane(voxel))
+                {
+                    this.Voxels.Remove(voxel);
+                    return true;
+                }
+
             }
             return false;
         }
 
         public Box GetBox(Voxel voxel)  => new Box(basePlane, 
-                new Interval(voxel.X, voxel.X + VoxelDimensions[0]),
-                new Interval(voxel.Y, voxel.Y + VoxelDimensions[1]),
-                new Interval(voxel.Z, voxel.Z + VoxelDimensions[2]));
+                new Interval(voxel.X * VoxelDimensions[0], (voxel.X * VoxelDimensions[0]) + VoxelDimensions[0]),
+                new Interval(voxel.Y * VoxelDimensions[1], (voxel.Y * VoxelDimensions[1]) + VoxelDimensions[1]),
+                new Interval(voxel.Z * VoxelDimensions[2], (voxel.Z * VoxelDimensions[2]) + VoxelDimensions[2]));
 
         /// <summary>
         /// Check if the voxel is part of the solution space
@@ -93,6 +100,8 @@ namespace InteractiveTownBuilder
         /// <returns></returns>
         private bool isGroudplane(Voxel voxel)
         {
+            if (voxel.X < 0 | voxel.Y < 0 | voxel.Z > 0) return false;
+            if (voxel.X < this.GridDimensions[0] & voxel.Y < this.GridDimensions[1] & voxel.Z > - this.GridDimensions[2]) return true;
             return false;
         }
 
