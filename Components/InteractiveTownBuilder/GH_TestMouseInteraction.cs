@@ -78,7 +78,8 @@ namespace InteractiveTownBuilder
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Mesh outMesh = new Mesh();
-            
+            callback.Enabled = false;
+
             if (!DA.GetData(1, ref enabled))
             {
                 callback.Enabled = false;
