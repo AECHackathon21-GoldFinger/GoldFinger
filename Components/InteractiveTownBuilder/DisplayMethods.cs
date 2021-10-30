@@ -13,17 +13,29 @@ namespace InteractiveTownBuilder
 {
     public static class DisplayMethods
     {
-        static double arrowSize = 5.0;
+        static double arrowLength = 1.0;
         static DisplayMaterial blankMesh = new DisplayMaterial(Color.White, 0.1);
+        static double hideDistance = 80;
 
         public static void DrawArrorRed(this Mesh mesh, int faceIndex, IGH_PreviewArgs args) 
         {
             Point3d meshCenter = HelpterFunctions.GetMeshFaceCenter(mesh, mesh.Faces[faceIndex]);
-            Vector3d faceNormal = mesh.FaceNormals[faceIndex];
-            faceNormal.Unitize();
 
-            Line line = new Line(meshCenter, faceNormal * arrowSize );
-            args.Display.DrawArrow(line, Color.Red , 1, 1);
+            var distance = meshCenter - args.Viewport.CameraLocation;
+
+            if (distance.Length < hideDistance)
+            {
+                Vector3d faceNormal = mesh.FaceNormals[faceIndex];
+                faceNormal.Unitize();
+
+                Line line = new Line(meshCenter, faceNormal * arrowLength);
+                args.Display.DrawLine(line, Color.Red, 2);
+                args.Display.DrawArrow(line, Color.Red, 0.0, 0.2);
+            }
+
+
+
+            
 
         }
 
