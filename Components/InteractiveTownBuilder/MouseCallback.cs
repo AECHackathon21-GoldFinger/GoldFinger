@@ -34,6 +34,7 @@ namespace InteractiveTownBuilder
 
         protected override void OnMouseDown(MouseCallbackEventArgs e)
         {
+            //Rhino.RhinoApp.WriteLine($"MouseDown!");
             //if (e.Button == MouseButtons.Left && gh_component != null && GetForegroundWindow() == RhinoApp.MainWindowHandle())
             if (e.Button == MouseButtons.Left && gh_component != null)
             {
@@ -41,21 +42,23 @@ namespace InteractiveTownBuilder
                 //gh_component.ExpireSolution(true);
                 e.Cancel = true;
                 gh_component.OnClick();
-            }
-            else
-            {
+
                 base.OnMouseDown(e);
             }
+        
         }
 
         protected override void OnMouseMove(MouseCallbackEventArgs e)
         {
+
+            if (gh_component != null && e.MouseButton == MouseButton.None)
+            //Rhino.RhinoApp.WriteLine($"MouseMove!");
             //if (gh_component != null && GetForegroundWindow() == RhinoApp.MainWindowHandle())
-            if (gh_component != null)
+           
             {
                 gh_component.mouseLine = new Line?(e.View.ActiveViewport.ClientToWorld(e.ViewportPoint));
                 gh_component.OnMouseOver();
-
+                
             }
 
             base.OnEndMouseMove(e);

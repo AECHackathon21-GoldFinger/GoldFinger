@@ -53,6 +53,7 @@ namespace InteractiveTownBuilder
         {
             pManager.AddPointParameter("Slots", "S", "The slots that monoceros will use for its solution", GH_ParamAccess.list);
             pManager.AddBoxParameter("Boxes", "B", "The slotes represented as boxes", GH_ParamAccess.list);
+            pManager.HideParameter(1);
         }
 
         protected override void BeforeSolveInstance()
@@ -69,7 +70,7 @@ namespace InteractiveTownBuilder
         protected override void SolveInstance(IGH_DataAccess DA)
         {
 
-            callback.Enabled = false;
+            //callback.Enabled = false;
 
 
             Box worldBox = Box.Empty;
@@ -114,11 +115,11 @@ namespace InteractiveTownBuilder
                 }
             }
 
-            if (!reset)
-            {
-                callback.Enabled = enabled;
 
-            }
+            callback.Enabled = enabled;
+            Rhino.RhinoApp.WriteLine(callback.Enabled ? "callback true" : "callback false");
+
+
 
             DA.SetDataList("Boxes", model.Voxels.Select(v => model.GetBox(v)));
 
@@ -132,14 +133,14 @@ namespace InteractiveTownBuilder
         }
         public override void DrawViewportMeshes(IGH_PreviewArgs args)
         {
-            if (model != null)
+            if (model != null && enabled)
             {
                 if (model.SelectedVoxel.Z >= -1)
                 {
                     DisplayMethods.BoxCorners(model.GetBox(model.SelectedVoxel), args);
                 }
                 if (model.SelectedDirection != Voxel.FaceDirections.None)
-                {
+                {   
                     DisplayMethods.BlankMesh(model.GetFaces(model.SelectedVoxel)[model.selectedFace], args);
                 }
             }
@@ -155,15 +156,8 @@ namespace InteractiveTownBuilder
                 {
 
 
-
-                    model.SelectedVoxel = model.Voxels[selectedBoxIndex];
-
-
-                    selectedBox = selectedBoxIndex;
-                    selectedFace = selectedFaceIndex;
-
                     model.AddVoxel(new Voxel(voxel.X + offset[0], voxel.Y + offset[1], voxel.Z + offset[2]));
-                    Rhino.RhinoApp.WriteLine($"Clicked {voxel}");
+                    //Rhino.RhinoApp.WriteLine($"Clicked {voxel}");
                     this.ExpireSolution(true);
 
                 }
@@ -180,15 +174,23 @@ namespace InteractiveTownBuilder
         {
             if (enabled && mouseLine.HasValue && model != null)
             {
+                Voxel selectedV = model.SelectedVoxel;
                 GetClickInfo(model, mouseLine, out int selectedBoxIndex, out int selectedFaceIndex, out Voxel voxel, out int[] offset, out Voxel.FaceDirections faceDirection);
-                if (voxel.X != model.SelectedVoxel.X || voxel.Y != model.SelectedVoxel.Y || voxel.Z != model.SelectedVoxel.Z)
+
+                if (model.SelectedVoxel.X != selectedV.X || model.SelectedVoxel.Y != selectedV.Y || model.SelectedVoxel.Z != selectedV.Z)
                 {
-                    Rhino.RhinoApp.WriteLine($"selected {voxel}");
+                    //Rhino.RhinoApp.WriteLine($"updated selection to {voxel}");
                     model.SelectedDirection = faceDirection;
                     model.SelectedVoxel = voxel;
                     selectedBox = selectedBoxIndex;
                     selectedFace = selectedFaceIndex;
+
+                    Rhino.RhinoDoc.ActiveDoc.Views.ActiveView.Redraw();
+
                 }
+
+
+
 
 
 
@@ -352,6 +354,8 @@ namespace InteractiveTownBuilder
 
                 }
 
+                model.SelectedDirection = faceDirection;
+
             }
             else
             {
@@ -361,7 +365,13 @@ namespace InteractiveTownBuilder
                 offset = new int[0];
                 return false;
             }
-            Rhino.RhinoApp.WriteLine($"Clicked voxel {voxel.X}, {voxel.Y}, {voxel.Z}. Active face was {model.selectedFace} and the direction is {model.SelectedDirection}");
+
+            model.SelectedVoxel = model.Voxels[selectedBoxIndex];
+
+
+            selectedBox = selectedBoxIndex;
+            selectedFace = selectedFaceIndex;
+            //Rhino.RhinoApp.WriteLine($"Clicked voxel {voxel.X}, {voxel.Y}, {voxel.Z}. Active face was {model.selectedFace} and the direction is {model.SelectedDirection}");
             return true;
         }
 
@@ -382,9 +392,9 @@ namespace InteractiveTownBuilder
 
 
             List<Voxel> groundPlaneSlotsList = new List<Voxel>();
-            
 
-            for (int ix = 0; ix <  coutInX; ++ix)
+
+            for (int ix = 0; ix < coutInX; ++ix)
             {
                 for (int jy = 0; jy < coutInY; ++jy)
                 {
