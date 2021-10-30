@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Rhino.Geometry;
 
 namespace InteractiveTownBuilder
 {
@@ -11,7 +12,16 @@ namespace InteractiveTownBuilder
     /// The main model to host our "map" or "level"
     /// </summary>
     public class Model
-    {
+    {   
+        /// <summary>
+        /// Private baseplane to avoid acidental overrides 
+        /// </summary>
+        private Plane basePlane = Plane.WorldXY;
+
+        /// <summary>
+        /// Public get method for the BasePlane
+        /// </summary>
+        public Plane BasePlane { get => basePlane; }
 
         /// <summary>
         /// List of all voxels that are solids
@@ -46,11 +56,29 @@ namespace InteractiveTownBuilder
 
 
         public void AddVoxel(Voxel voxel) => this.Voxels.Add(voxel);
+        public bool RemoveVoxel(Voxel voxel)
+        {
+            if (this.Voxels.Contains(voxel)) 
+            {
+                this.Voxels.Remove(voxel);
+                return true;
+            }
+            return false;
+        }
 
+        public Box GetBox(this Model model, Voxel voxel)  => new Box(basePlane, 
+                new Interval(voxel.X, voxel.X + VoxelDimensions[0]),
+                new Interval(voxel.Y, voxel.Y + VoxelDimensions[1]),
+                new Interval(voxel.Z, voxel.Z + VoxelDimensions[2]));
 
         public static Model operator +(Model a, Voxel b)
         {
             a.AddVoxel(b);
+            return a;
+        }
+        public static Model operator -(Model a, Voxel b) 
+        {
+            a.RemoveVoxel(b);
             return a;
         }
     }
