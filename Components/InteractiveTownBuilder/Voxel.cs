@@ -3,7 +3,15 @@ namespace InteractiveTownBuilder
 {
     public struct Voxel
     {
-
+        public enum FaceDirections
+        {
+            East,
+            North,
+            Up,
+            West,
+            South,
+            Down
+        }
         public int X { get; set; }
         public int Y { get; set; }
         public int Z { get; set; }

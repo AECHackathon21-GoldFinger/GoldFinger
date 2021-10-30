@@ -14,7 +14,7 @@ namespace InteractiveTownBuilder
     class MouseCallback : Rhino.UI.MouseCallback
     {
 
-        private GH_TestMouseInteraction gh_component;
+        private InteractiveTownBuilderComponent gh_component;
 
         public string HoverViewportName { get; set; }
 
@@ -24,7 +24,7 @@ namespace InteractiveTownBuilder
         private static extern IntPtr GetForegroundWindow();
 
 
-        public MouseCallback(GH_TestMouseInteraction cm)
+        public MouseCallback(InteractiveTownBuilderComponent cm)
         {
 
             gh_component = cm;
@@ -34,16 +34,28 @@ namespace InteractiveTownBuilder
 
         protected override void OnMouseDown(MouseCallbackEventArgs e)
         {
-            if (e.Button == MouseButtons.Left && gh_component != null && (gh_component.inActiveDocument) && GetForegroundWindow() == RhinoApp.MainWindowHandle())
+            if (e.Button == MouseButtons.Left && gh_component != null && GetForegroundWindow() == RhinoApp.MainWindowHandle())
             {
                 gh_component.mouseLine = new Line?(e.View.ActiveViewport.ClientToWorld(e.ViewportPoint));
-                gh_component.ExpireSolution(true);
+                //gh_component.ExpireSolution(true);
                 e.Cancel = true;
+                gh_component.OnClick();
             }
             else
             {
                 base.OnMouseDown(e);
             }
+        }
+
+        protected override void OnEndMouseMove(MouseCallbackEventArgs e)
+        {
+            if(gh_component != null && GetForegroundWindow() == RhinoApp.MainWindowHandle())
+            {
+            gh_component.mouseLine = new Line?(e.View.ActiveViewport.ClientToWorld(e.ViewportPoint));
+
+            }
+
+            base.OnEndMouseMove(e);
         }
 
 
