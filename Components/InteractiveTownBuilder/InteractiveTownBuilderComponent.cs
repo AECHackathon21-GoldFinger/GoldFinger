@@ -54,6 +54,7 @@ namespace InteractiveTownBuilder
             pManager.AddPointParameter("Slots", "S", "The slots that monoceros will use for its solution", GH_ParamAccess.list);
             pManager.AddBoxParameter("Boxes", "B", "The slotes represented as boxes", GH_ParamAccess.list);
             pManager.HideParameter(1);
+            pManager.AddGenericParameter("model", "model", "model", GH_ParamAccess.item);
         }
 
         protected override void BeforeSolveInstance()
@@ -121,7 +122,8 @@ namespace InteractiveTownBuilder
 
 
 
-            DA.SetDataList("Boxes", model.Voxels.Select(v => model.GetBox(v)));
+            DA.SetDataList(1, model.Voxels.Select(v => model.GetBox(v)));
+            DA.SetData(2, model);
 
 
         }
