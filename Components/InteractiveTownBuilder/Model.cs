@@ -44,5 +44,14 @@ namespace InteractiveTownBuilder
             GridDimensions = gridDimensions;
         }
 
+
+        public void AddVoxel(Voxel voxel) => this.Voxels.Add(voxel);
+
+
+        public static Model operator +(Model a, Voxel b)
+        {
+            a.AddVoxel(b);
+            return a;
+        }
     }
 }
