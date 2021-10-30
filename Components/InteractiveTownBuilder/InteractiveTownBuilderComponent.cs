@@ -378,22 +378,19 @@ namespace InteractiveTownBuilder
             Interval z = new Interval(plane.OriginZ, plane.OriginZ - zSize);
 
 
-            //Box[] groundPlaneVolumes = new Box[coutInX * coutInY];
-            Voxel[] groundPlaneSlots = new Voxel[coutInX * coutInY];
+            List<Voxel> groundPlaneSlotsList = new List<Voxel>();
+            
 
-
-            for (int i = 0; i < (coutInX * coutInY); i += coutInX)
+            for (int ix = 0; ix <  coutInX; ++ix)
             {
-                for (int j = 0; j < coutInX; ++j)
+                for (int jy = 0; jy < coutInY; ++jy)
                 {
-                    //groundPlaneVolumes[i + j] = new Box(plane, x, y, z);
-                    groundPlaneSlots[i + j] = new Voxel(i, j, 0);
-                    x += xSize;
+                    groundPlaneSlotsList.Add(new Voxel(ix, jy, 0));
                 }
                 y += ySize;
                 x = new Interval(X.Min, X.Min + xSize);
             }
-
+            Voxel[] groundPlaneSlots = groundPlaneSlotsList.ToArray();
             return groundPlaneSlots;
         }
 
