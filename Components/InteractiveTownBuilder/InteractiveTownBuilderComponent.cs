@@ -136,12 +136,12 @@ namespace InteractiveTownBuilder
         {
             if(enabled && mouseLine.HasValue)
             {
-                if (GetClickInfo(boxArray, mouseLine, out int selectedBoxIndex, out int selectedFaceIndex))
+                if (GetClickInfo(model, boxArray, mouseLine, out int selectedBoxIndex, out int selectedFaceIndex, out Voxel voxel))
                 {
                     selectedBox = selectedBoxIndex;
                     selectedFace = selectedFaceIndex;
 
-
+                    model.AddVoxel()
 
                 }
 
@@ -155,7 +155,7 @@ namespace InteractiveTownBuilder
         {
             if (enabled && mouseLine.HasValue)
             {
-                GetClickInfo(boxArray, mouseLine, out int selectedBoxIndex, out int selectedFaceIndex);
+                GetClickInfo(model, boxArray, mouseLine, out int selectedBoxIndex, out int selectedFaceIndex);
                 selectedBox = selectedBoxIndex;
                 selectedFace = selectedFaceIndex;
             }
@@ -203,12 +203,16 @@ namespace InteractiveTownBuilder
         }
 
 
-        public bool GetClickInfo(Box[] boxes, Line? lineFromMouse, out int selectedBoxIndex, out int selectedFaceIndex)
+        public bool GetClickInfo(Model model, Box[] boxes, Line? lineFromMouse, out int selectedBoxIndex, out int selectedFaceIndex, out Voxel voxel, out int[] offset)
         {
+            //TODO: get box from voxels,
+           
             if (!lineFromMouse.HasValue)
             {
                 selectedBoxIndex = -1;
                 selectedFaceIndex = -1;
+                voxel = new Voxel();
+                offset = new int[0];
                 return false;
             }
 
@@ -296,17 +300,44 @@ namespace InteractiveTownBuilder
 
                 IOrderedEnumerable<int> sourceFaces = Enumerable.Range(0, selectedFaces.Count).OrderByDescending(i => intersectParamsFaces[i]);
                 selectedFaceIndex = sourceFaces.Select(i => selectedFaces[i]).First();
-                
+
+                voxel = model.Voxels[selectedBoxIndex];
+
+                switch (selectedFaceIndex)
+                {
+                    case 0:
+                        offset = new int[3] { 0,0,-1 };
+                        break;
+                    case 1:
+                        offset = new int[3] { 0, 0, 1 };
+                        break;
+                    case 2:
+                        offset = new int[3] { 0, -1, 0 };
+                        break;
+                    case 3:
+                        offset = new int[3] { 1, 0, 0 };
+                        break;
+                    case 4:
+                        offset = new int[3] { 0, 1, 0 };
+                        break;
+                    case 5:
+                        offset = new int[3] { -1, 0, 0 };
+                        break;
+                    default:
+                        throw new Exception("wrong face id");
+                       
+                }
 
             }
             else
             {
                 selectedBoxIndex = -1;
                 selectedFaceIndex = -1;
+                voxel = new Voxel();
+                offset = new int[0];
                 return false;
             }
            
-
             return true;
         }
 
