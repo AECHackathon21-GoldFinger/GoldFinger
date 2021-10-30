@@ -66,7 +66,7 @@ namespace InteractiveTownBuilder
             return false;
         }
 
-        public Box GetBox(this Model model, Voxel voxel)  => new Box(basePlane, 
+        public Box GetBox(Voxel voxel)  => new Box(basePlane, 
                 new Interval(voxel.X, voxel.X + VoxelDimensions[0]),
                 new Interval(voxel.Y, voxel.Y + VoxelDimensions[1]),
                 new Interval(voxel.Z, voxel.Z + VoxelDimensions[2]));
