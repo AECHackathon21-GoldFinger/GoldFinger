@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Rhino.Geometry;
+using Grasshopper.Kernel;
 
 namespace InteractiveTownBuilder
 {
@@ -70,6 +71,30 @@ namespace InteractiveTownBuilder
                 new Interval(voxel.X, voxel.X + VoxelDimensions[0]),
                 new Interval(voxel.Y, voxel.Y + VoxelDimensions[1]),
                 new Interval(voxel.Z, voxel.Z + VoxelDimensions[2]));
+
+        /// <summary>
+        /// Check if the voxel is part of the solution space
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="voxel"></param>
+        /// <returns></returns>
+        private bool isInside(Voxel voxel) 
+        {
+            if (voxel.X < 0 | voxel.Y < 0 | voxel.Z < 0) return false;
+            if (voxel.X < this.GridDimensions[0] & voxel.Y < this.GridDimensions[1] & voxel.Z < this.GridDimensions[2]) return true;
+            return false;
+        }
+
+        /// <summary>
+        /// Check if the voxel is part of the groundplane
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="voxel"></param>
+        /// <returns></returns>
+        private bool isGroudplane(Voxel voxel)
+        {
+            return false;
+        }
 
         public static Model operator +(Model a, Voxel b)
         {
