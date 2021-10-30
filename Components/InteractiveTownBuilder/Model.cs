@@ -161,9 +161,7 @@ namespace InteractiveTownBuilder
         public void DisplayGround(IGH_PreviewArgs args) 
         {
             IEnumerable<Box> groundPlane = this.GroundPlane.Select(v => this.GetBox(v));
-            //groundPlane.Select(b => b.Transform(Transform.Scale(basePlane, 1.0,1.0, 0.1)));
-
-
+            foreach (Box box in groundPlane) box.Transform(Transform.Scale(basePlane, 1.0, 1.0, 0.1));
             foreach (Box box in groundPlane) box.BoxCorners(args);
 
         }
@@ -176,7 +174,18 @@ namespace InteractiveTownBuilder
                 mesh1.Append(mesh2);
                 return true;
             }
-            var meshs = this.Voxels.Where(v => this.isGroudplane(v) == false).Select( v => this.GetFaces(v).Select(m => CustomJoin(mesh,m)));
+            foreach (Voxel v in this.Voxels) 
+            {
+                if (this.isGroudplane(v) == false) 
+                {
+                    List<Mesh> msh = this.GetFaces(v);
+                    foreach (Mesh m in msh) 
+                    {
+                        mesh.Append(m);
+                    }
+                }
+            }
+
             mesh.BlankMesh(args);
         }
 
