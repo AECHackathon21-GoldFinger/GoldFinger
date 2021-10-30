@@ -6,6 +6,7 @@
     <Title>InteractiveTownBuilder</Title>
     <Description>Description of InteractiveTownBuilder</Description>
     <TargetExt>.gha</TargetExt>
+    <Configurations>Debug;Release;Povl</Configurations>
   </PropertyGroup>
   
   <ItemGroup>
@@ -23,7 +24,11 @@
   </PropertyGroup>
   
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <OutputPath>C:\Users\mm1013\AppData\Roaming\Grasshopper\Libraries\GoldFinger\</OutputPath>
+    <OutputPath>C:\Users\mm1062\AppData\Roaming\Grasshopper\Libraries\GoldFinger\</OutputPath>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Povl|AnyCPU'">
+    <OutputPath>C:\Users\mm1062\source\repos\GoldFinger\</OutputPath>
   </PropertyGroup>
 
 </Project>
