@@ -179,7 +179,7 @@ namespace InteractiveTownBuilder
                         {
                             Rhino.RhinoApp.WriteLine($"adding");
                             model.AddVoxel(voxelToAdd);
-
+                            FirebaseConnect.PushCubes(model.Voxels.Select(_voxel => model.GetBox(_voxel).Center).ToList());
                         }
                     }
                     else
@@ -190,6 +190,7 @@ namespace InteractiveTownBuilder
                         {
                             Rhino.RhinoApp.WriteLine($"removing {voxel}");
                             model.RemoveVoxel(voxel);
+                            FirebaseConnect.PushCubes(model.Voxels.Select(_voxel => model.GetBox(_voxel).Center).ToList());
                         }
 
                         

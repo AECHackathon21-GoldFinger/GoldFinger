@@ -10,7 +10,8 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="Grasshopper" Version="7.4.21078.1001" IncludeAssets="compile;build" />
+    <PackageReference Include="FireSharp" Version="2.0.4" />
+    <PackageReference Include="Grasshopper" Version="7.3.21053.23031" IncludeAssets="compile;build" />
   </ItemGroup>
   
   <ItemGroup>
