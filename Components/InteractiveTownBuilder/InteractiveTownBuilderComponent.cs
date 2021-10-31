@@ -100,12 +100,14 @@ namespace InteractiveTownBuilder
 
 
             bool reset = false;
+            var context = "";
             DA.GetData(5, ref reset);
 
             DA.GetData("Bounding Box", ref worldBox);
             DA.GetData("xSize", ref xSize);
             DA.GetData("ySize", ref ySize);
             DA.GetData("zSize", ref zSize);
+            DA.GetData("Context Json", ref context);
 
             if (reset || model == null)
             {
@@ -120,8 +122,7 @@ namespace InteractiveTownBuilder
                 if (updated || reset)
                 {
                     model = CreateModel(worldBox, xSize, ySize, zSize);
-
-
+                    model.AddContext(context);
                 }
             }
 

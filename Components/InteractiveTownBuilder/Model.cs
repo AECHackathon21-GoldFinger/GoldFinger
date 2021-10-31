@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Rhino.Geometry;
 using Grasshopper.Kernel;
+using Newtonsoft.Json;
 
 namespace InteractiveTownBuilder
 {
@@ -198,6 +199,15 @@ namespace InteractiveTownBuilder
         {
             a.RemoveVoxel(b);
             return a;
+        }
+
+        public void AddContext(string configJson)
+        {
+            var config = JsonConvert.DeserializeObject<List<List<int>>>(configJson);
+            foreach (var cube in config)
+            {
+                AddVoxel(new Voxel(cube[0], cube[1], cube[2]));
+            }
         }
     }
 }
