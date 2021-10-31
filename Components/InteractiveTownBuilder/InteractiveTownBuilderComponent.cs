@@ -50,6 +50,8 @@ namespace InteractiveTownBuilder
             int c =pManager.AddBooleanParameter("Allow cantilever", "cantilever", "cantilever", GH_ParamAccess.item, false);
             pManager[c].Optional = true;
             pManager.AddTextParameter("Context Json", "Context Json", "JSON string of voxel list to instanciate", GH_ParamAccess.item);
+
+            pManager[7].Optional = true;
         }
 
         

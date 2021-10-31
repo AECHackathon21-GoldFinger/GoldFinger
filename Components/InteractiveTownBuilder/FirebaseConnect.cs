@@ -71,29 +71,25 @@ namespace InteractiveTownBuilder
 
             return cubes;
         }
-        private static List<Dictionary<string, Dictionary<string, double>>> ParsePointsToVue(List<Point3d> points)
+
+        private static Dictionary<string, Dictionary<string, Dictionary<string, double>>> ParsePointsToVue(List<Point3d> points)
         {
-            return points.Select(point => new Dictionary<string, Dictionary<string, double>>
+            var output = new Dictionary<string, Dictionary<string, Dictionary<string, double>>>();
+            points.ForEach(point =>
             {
-                {
-                    GenerateRandomString(), new Dictionary<string, double>
+                output.Add(Guid.NewGuid().ToString(),
+                    new Dictionary<string, Dictionary<string, double>>
                     {
-                        {"x", point.X},
-                        {"y", point.Z},
-                        {"z", point.Y},
+                        {"position", new Dictionary<string, double>
+                        {
+                            { "x", point.X },
+                            { "y", point.Z },
+                            { "z", point.Y },
+                        }} 
                     }
-                }
-            }).ToList();
-        }
-
-        private static string GenerateRandomString(int length = 10)
-        {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
-            var random = new Random();
-            var randomString = new string(Enumerable.Repeat(chars, length)
-                .Select(s => s[random.Next(s.Length)]).ToArray());
-            return randomString;
+                    );
+            });
+            return output;
         }
     }
 }
