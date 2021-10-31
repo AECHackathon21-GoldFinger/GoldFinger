@@ -49,6 +49,7 @@ namespace InteractiveTownBuilder
             pManager.AddBooleanParameter("Reset", "Reset", "Resets your world :o", GH_ParamAccess.item);
             int c =pManager.AddBooleanParameter("Allow cantilever", "cantilever", "cantilever", GH_ParamAccess.item, false);
             pManager[c].Optional = true;
+            pManager.AddTextParameter("Context Json", "Context Json", "JSON string of voxel list to instanciate", GH_ParamAccess.item);
         }
 
         
@@ -58,6 +59,8 @@ namespace InteractiveTownBuilder
             pManager.AddBoxParameter("Boxes", "B", "The slotes represented as boxes", GH_ParamAccess.list);
             pManager.HideParameter(1);
             pManager.AddGenericParameter("model", "model", "model", GH_ParamAccess.item);
+            pManager.AddTextParameter("Game Json", "Game Json", "exports the added voxels in json format (Excluding context)", GH_ParamAccess.item);
+            pManager.AddTextParameter("Context Json", "Context Json", "exports the context voxels in json format", GH_ParamAccess.item);
         }
 
         protected override void BeforeSolveInstance()
