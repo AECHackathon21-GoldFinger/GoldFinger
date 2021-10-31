@@ -28,6 +28,7 @@ namespace InteractiveTownBuilder
 
         int selectedBox = -1;
         int selectedFace = -1;
+        bool allowCantilever = false;
 
         public InteractiveTownBuilderComponent()
           : base("InteractiveTownBuilder", "ITB",
@@ -46,9 +47,11 @@ namespace InteractiveTownBuilder
             pManager.AddNumberParameter("zSize", "Z", "The size of a voxel meter", GH_ParamAccess.item, 3);
             pManager.AddBooleanParameter("Enable", "Enable", "enable", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Reset", "Reset", "Resets your world :o", GH_ParamAccess.item);
+            int c =pManager.AddBooleanParameter("Allow cantilever", "cantilever", "cantilever", GH_ParamAccess.item, false);
+            pManager[c].Optional = true;
         }
 
-
+        
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddPointParameter("Slots", "S", "The slots that monoceros will use for its solution", GH_ParamAccess.list);
@@ -72,6 +75,9 @@ namespace InteractiveTownBuilder
         {
 
             //callback.Enabled = false;
+
+            
+            DA.GetData(6, ref allowCantilever);
 
 
             Box worldBox = Box.Empty;
@@ -142,7 +148,7 @@ namespace InteractiveTownBuilder
                     DisplayMethods.BoxCorners(model.GetBox(model.SelectedVoxel), args);
                 }
                 if (model.SelectedDirection != Voxel.FaceDirections.None)
-                {   
+                {
                     DisplayMethods.BlankMesh(model.GetFaces(model.SelectedVoxel)[model.selectedFace], args);
                 }
             }
@@ -165,12 +171,28 @@ namespace InteractiveTownBuilder
 
                     if (add)
                     {
+                        
+                        Voxel voxelToAdd = new Voxel(voxel.X + offset[0], voxel.Y + offset[1], voxel.Z + offset[2]);
+                        Voxel voxelBelow = new Voxel(voxelToAdd.X, voxelToAdd.Y, voxelToAdd.Z - 1);
 
-                    model.AddVoxel(new Voxel(voxel.X + offset[0], voxel.Y + offset[1], voxel.Z + offset[2]));
+                        if (model.Voxels.Contains(voxelBelow) || allowCantilever)
+                        {
+                            Rhino.RhinoApp.WriteLine($"adding");
+                            model.AddVoxel(voxelToAdd);
+
+                        }
                     }
                     else
                     {
-                        model.RemoveVoxel(voxel);
+                        Voxel voxelAbove = new Voxel(voxel.X, voxel.Y, voxel.Z + 1);
+
+                        if ((!model.Voxels.Contains(voxelAbove) || allowCantilever) && voxel.Z > 0)
+                        {
+                            Rhino.RhinoApp.WriteLine($"removing {voxel}");
+                            model.RemoveVoxel(voxel);
+                        }
+
+                        
                     }
                     //Rhino.RhinoApp.WriteLine($"Clicked {voxel}");
                     this.ExpireSolution(true);
@@ -248,10 +270,11 @@ namespace InteractiveTownBuilder
 
                 Voxel[] voxels = ConstructBaseplane(plane, xSize, ySize, zSize, box, out int[] gridSize);
 
-                return new Model(gridSize, new double[] { xSize, ySize, zSize }) 
-                { 
+                return new Model(gridSize, new double[] { xSize, ySize, zSize })
+                {
                     Voxels = voxels.ToList(),
-                    GroundPlane = voxels.ToList() };
+                    GroundPlane = voxels.ToList()
+                };
             }
 
         }
