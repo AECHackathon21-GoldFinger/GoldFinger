@@ -1,4 +1,4 @@
-## AEC_Hackathon2021
+## AEC_Hackathon2021 - Team Goldfingeeeer
 
 This repository contains the code and materials from the GoldFinger Group at the AECH Hackathon 2021 in Copenhagen.
 
