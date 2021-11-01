@@ -14,6 +14,9 @@ https://docs.google.com/presentation/d/15UG4V0ECpjMhmkJ3xcWpk6Tj6kyQZUxRakG3wdUg
 ### Web app synced with firebase ([gamecity repo](https://github.com/AECHackathon21-GoldFinger/gamecity), [firebase repo](https://github.com/AECHackathon21-GoldFinger/FirebaseWFC)):
 https://gamecity.web.app
 
+![gamecity](https://user-images.githubusercontent.com/19936679/139638958-f2429003-6cd2-4f63-b2fd-b72d59051d8d.gif)
+
+
 Mouse Interaction (minecraft style) with rhino grasshopper (this repo).
 
 ### TODOs:
