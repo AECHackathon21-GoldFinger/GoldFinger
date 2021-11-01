@@ -9,9 +9,19 @@ https://docs.google.com/presentation/d/15UG4V0ECpjMhmkJ3xcWpk6Tj6kyQZUxRakG3wdUg
 ![goldfinger](https://user-images.githubusercontent.com/19936679/139638228-275a709a-bea7-4c7c-8079-0266f79edbab.gif)
 
 
+## Contents:
+
+### Web app synced with firebase ([gamecity repo](https://github.com/AECHackathon21-GoldFinger/gamecity), [firebase repo](https://github.com/AECHackathon21-GoldFinger/FirebaseWFC)):
+https://gamecity.web.app
+
+Mouse Interaction (minecraft style) with rhino grasshopper (this repo).
+
+### TODOs:
+Finish the Wave Function Collapse setup to introduce [Townscaper](https://store.steampowered.com/app/1291340/Townscaper/) behavior!
 
 
-###Credits:
+
+### Credits:
 
 [Christian Kongsgaard](https://github.com/ocni-dtu)
 
