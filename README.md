@@ -44,3 +44,5 @@ Peter Bendix Sandberg-Olsen
 
 [Ryan Hughes](https://github.com/rhughes42)
 
+Peter Bendix Sandborg-Olsen
+
