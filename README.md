@@ -11,10 +11,6 @@ https://docs.google.com/presentation/d/15UG4V0ECpjMhmkJ3xcWpk6Tj6kyQZUxRakG3wdUg
 https://user-images.githubusercontent.com/19936679/141648008-600f5f07-a863-4718-af34-d03ad7183839.mp4
 
 
-
-![goldfinger](https://user-images.githubusercontent.com/19936679/139638228-275a709a-bea7-4c7c-8079-0266f79edbab.gif)
-
-
 ## Contents:
 
 ### Web app synced with firebase ([gamecity repo](https://github.com/AECHackathon21-GoldFinger/gamecity), [firebase repo](https://github.com/AECHackathon21-GoldFinger/FirebaseWFC)):
